@@ -15,7 +15,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.util.Arrays;
 
 /**
- * 角色權限攔截器 — 參考自 parking-system RoleInterceptor
+ * 角色權限攔截器
  *
  * 運作方式：
  * 1. 只處理有 @RequireRole 的方法或類別
@@ -28,8 +28,8 @@ public class RoleInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request,
-                             @NonNull HttpServletResponse response,
-                             @NonNull Object handler) throws Exception {
+            @NonNull HttpServletResponse response,
+            @NonNull Object handler) throws Exception {
 
         // 只處理 Controller 方法，靜態資源直接放行
         if (!(handler instanceof HandlerMethod handlerMethod)) {

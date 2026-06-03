@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * 登入驗證攔截器 — 對齊 parking-system 的模式
+ * 登入驗證攔截器
  * Session key 統一用 "loginUser"，存整個 User entity
  */
 @Component
@@ -18,8 +18,8 @@ public class LoginInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request,
-                             @NonNull HttpServletResponse response,
-                             @NonNull Object handler) throws Exception {
+            @NonNull HttpServletResponse response,
+            @NonNull Object handler) throws Exception {
 
         log.debug("LoginInterceptor 處理請求: {}", request.getRequestURI());
 
