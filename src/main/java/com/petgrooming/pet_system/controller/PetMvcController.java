@@ -4,8 +4,8 @@ import com.petgrooming.pet_system.dto.PetRequest;
 import com.petgrooming.pet_system.enums.PetType;
 import com.petgrooming.pet_system.model.User;
 import com.petgrooming.pet_system.service.PetService;
+import com.petgrooming.pet_system.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -20,11 +20,21 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class PetMvcController {
 
     private final PetService petService;
+    private final UserService userService;
 
+    /**
+     * JWT 版獲取當前登入使用者
+     * 從 LoginInterceptor 存入的 request attribute 拿取 username，
+     * 再用 UserService 查出完整的 User entity，沒有就回傳 null
+     */
     private User getLoginUser(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) return null;
-        return (User) session.getAttribute("loginUser");
+        String username = (String) request.getAttribute("tokenUsername");
+        if (username == null) return null;
+        try {
+            return userService.getUserEntityByUsername(username);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     @GetMapping

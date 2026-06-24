@@ -7,7 +7,6 @@ import com.petgrooming.pet_system.service.UserService;
 import com.petgrooming.pet_system.utils.JwtUtils; // 1. 引入剛剛修好的 JwtUtils
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;

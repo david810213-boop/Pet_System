@@ -8,7 +8,6 @@ import com.petgrooming.pet_system.service.UserService;
 import com.petgrooming.pet_system.service.interfaces.GroomingService;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -27,10 +26,19 @@ public class AdminMvcController {
     private final PaymentService paymentService;
     private final GroomingService groomingService;
 
+    /**
+     * JWT 版獲取當前登入使用者
+     * 從 LoginInterceptor 存入的 request attribute 拿取 username，
+     * 再用 UserService 查出完整的 User entity
+     */
     private User getLoginUser(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) return null;
-        return (User) session.getAttribute("loginUser");
+        String username = (String) request.getAttribute("tokenUsername");
+        if (username == null) return null;
+        try {
+            return userService.getUserEntityByUsername(username);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private boolean isAdmin(HttpServletRequest request) {
