@@ -42,7 +42,7 @@ public class DataInitializer implements ApplicationRunner {
             saveItem("GS011", "毛鱗修復液", "專門針對乾枯毛髮設計的密集修護安瓶精華", 320.0);
             saveItem("GS012", "牙齒清潔", "使用寵物酵素牙膏，基本口腔清潔與除垢", 200.0);
 
-            log.info("✨ [系統通知] 12項完美容服務項目已成功初始化入庫！");
+            log.info("✨ [系統通知] 12項美容服務項目已成功初始化入庫！");
         }
     }
 
