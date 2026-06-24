@@ -23,12 +23,12 @@ public class DataInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         // 1. 初始化預設帳號
         createIfNotExists("admin@pet.com", "admin123", "系統管理員", UserRole.ADMIN);
-        createIfNotExists("staff@pet.com", "staff123", "美容師小洪",  UserRole.STAFF);
-        createIfNotExists("user@pet.com",  "user123",  "測試會員",    UserRole.CUSTOMER);
+        createIfNotExists("staff@pet.com", "staff123", "美容師小洪", UserRole.STAFF);
+        createIfNotExists("user@pet.com", "user123", "測試會員", UserRole.CUSTOMER);
         log.info("預設帳號初始化完成");
 
         if (groomingItemRepository.count() == 0) {
-            
+
             saveItem("GS001", "指甲修剪磨圓", "包含基本的指甲長度修剪與邊緣圓滑打磨", 200.0);
             saveItem("GS002", "剃腳底屁股毛", "局部毛髮修剪，保持寵物居家清潔與防滑", 150.0);
             saveItem("GS003", "擠肛門腺", "溫和清潔寵物肛門腺，減少異味與不適感", 180.0);
@@ -42,7 +42,7 @@ public class DataInitializer implements ApplicationRunner {
             saveItem("GS011", "毛鱗修復液", "專門針對乾枯毛髮設計的密集修護安瓶精華", 320.0);
             saveItem("GS012", "牙齒清潔", "使用寵物酵素牙膏，基本口腔清潔與除垢", 200.0);
 
-            log.info("✨ [系統通知] 12項完整經典美容服務項目已成功初始化入庫！");
+            log.info("✨ [系統通知] 12項完美容服務項目已成功初始化入庫！");
         }
     }
 
