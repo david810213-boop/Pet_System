@@ -1,0 +1,87 @@
+package com.petgrooming.pet_system.service; 
+
+import java.util.List;
+import java.util.stream.Collectors; 
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.petgrooming.pet_system.dto.GroomingItemRequest;  
+import com.petgrooming.pet_system.dto.GroomingItemResponse;
+import com.petgrooming.pet_system.model.GroomingItem;
+import com.petgrooming.pet_system.repository.GroomingItemRepository;
+import com.petgrooming.pet_system.service.interfaces.GroomingService;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class GroomingServiceImpl implements GroomingService {
+
+    private final GroomingItemRepository groomingItemRepository;
+
+    /**
+     * 新增美容服務項目
+     */
+    @Override
+    @Transactional
+    public void createItem(GroomingItemRequest request) {
+        // 1. 防重機制：檢查 ItemCode（如 GS001）是否已經存在於資料庫
+        if (groomingItemRepository.existsByItemCode(request.getItemCode())) {
+            throw new IllegalArgumentException("建立失敗：項目代碼 [" + request.getItemCode() + "] 已存在！");
+        }
+
+        // 2. 建立全新的 Entity 並將 DTO 的資料填入
+        GroomingItem item = new GroomingItem();
+        item.setItemCode(request.getItemCode());
+        item.setName(request.getName());
+        item.setDescription(request.getDescription());
+        item.setPrice(request.getPrice());
+        item.setDeleted(false); // 新增的項目預設就是直接上架使用
+
+        // 3. 實質寫入資料庫
+        groomingItemRepository.save(item);
+    }
+
+    /**
+     * 1. 撈出整個美容項目菜單 (只拿沒被下架的)
+     */
+    @Override
+    @Transactional(readOnly = true) 
+    public List<GroomingItemResponse> getAllItems() {
+        List<GroomingItem> items = groomingItemRepository.findByIsDeletedFalse();
+        return items.stream()
+                .map(GroomingItemResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 2. 修改指定的美容項目 
+     */
+    @Override
+    @Transactional 
+    public GroomingItemResponse updateItem(Long id, GroomingItemRequest request) {
+        GroomingItem item = groomingItemRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("修改失敗：找不到 ID 為 " + id + " 的美容項目"));
+
+        item.setName(request.getName());
+        item.setDescription(request.getDescription());
+        item.setPrice(request.getPrice());
+        
+        GroomingItem updatedItem = groomingItemRepository.save(item);
+        return GroomingItemResponse.from(updatedItem);
+    }
+
+    /**
+     * 3. 刪除指定的美容項目 (實作「邏輯刪除」下架)
+     */
+    @Override
+    @Transactional
+    public void deleteItem(Long id) {
+        GroomingItem item = groomingItemRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("刪除失敗：找不到 ID 為 " + id + " 的美容項目"));
+
+        item.setDeleted(true); 
+        groomingItemRepository.save(item);
+    }
+}
