@@ -2,7 +2,14 @@ package com.petgrooming.pet_system.config;
 
 import com.petgrooming.pet_system.interceptor.LoginInterceptor;
 import com.petgrooming.pet_system.interceptor.RoleInterceptor;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -20,6 +27,20 @@ public class WebConfig implements WebMvcConfigurer {
         private final LoginInterceptor loginInterceptor;
         private final RoleInterceptor roleInterceptor;
 
+        // ngrok 免費版會在第一次訪問時顯示安全警告頁面，加上這個 header 讓 ngrok 跳過該頁面
+        // 讓 LIFF webview 能直接載入頁面，不被中途攔截
+        @Bean
+        public FilterRegistrationBean<Filter> ngrokSkipWarningFilter() {
+                FilterRegistrationBean<Filter> bean = new FilterRegistrationBean<>();
+                bean.setFilter((ServletRequest req, ServletResponse res, FilterChain chain) -> {
+                        ((HttpServletResponse) res).setHeader("ngrok-skip-browser-warning", "true");
+                        chain.doFilter(req, res);
+                });
+                bean.addUrlPatterns("/*");
+                bean.setOrder(1);
+                return bean;
+        }
+
         @Override
         public void addInterceptors(@NonNull InterceptorRegistry registry) {
 
@@ -32,6 +53,8 @@ public class WebConfig implements WebMvcConfigurer {
                                                 "/auth/register",
                                                 "/auth/register/submit",
                                                 "/auth/logout",
+                                                "/api/line/login",
+                                                "/test/**",
                                                 "/css/**",
                                                 "/js/**",
                                                 "/images/**",
@@ -47,6 +70,8 @@ public class WebConfig implements WebMvcConfigurer {
                                 .addPathPatterns("/**")
                                 .excludePathPatterns(
                                                 "/auth/**",
+                                                "/api/line/login",
+                                                "/test/**",
                                                 "/css/**", "/js/**", "/images/**", "/static/**",
                                                 "/h2-console/**", "/error", "/favicon.ico")
                                 .order(2);

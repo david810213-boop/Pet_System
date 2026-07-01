@@ -15,6 +15,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByUsername(String username);
 
+    // 依 LINE userId 查詢（顧客 LINE 登入用）
+    Optional<User> findByLineUserId(String lineUserId);
+
     // 依角色查詢
     List<User> findByRole(UserRole role);
 }

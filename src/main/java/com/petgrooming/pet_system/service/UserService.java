@@ -9,8 +9,10 @@ import com.petgrooming.pet_system.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -63,7 +65,26 @@ public class UserService {
         return userRepository.findByRole(UserRole.STAFF).stream().map(UserResponse::from).toList();
     }
 
-    // ── 7. 新增員工帳號（ADMIN）──────────────────────────────────────────
+    // ── 8. LINE 登入：依 lineUserId 查找會員，找不到就自動建立（CUSTOMER）──
+    // 回傳 [User, isNewMember]
+    public AbstractMap.SimpleEntry<User, Boolean> findOrCreateByLine(String lineUserId, String displayName) {
+        Optional<User> existing = userRepository.findByLineUserId(lineUserId);
+        if (existing.isPresent()) {
+            return new AbstractMap.SimpleEntry<>(existing.get(), false);
+        }
+
+        // LINE 會員沒有帳密登入需求，username/password 用內部規則產生佔位值
+        User newUser = User.builder()
+                .username("line_" + lineUserId)
+                .password(UUID.randomUUID().toString())
+                .name(displayName != null ? displayName : "LINE會員")
+                .role(UserRole.CUSTOMER)
+                .lineUserId(lineUserId)
+                .isActive(true)
+                .build();
+
+        return new AbstractMap.SimpleEntry<>(userRepository.save(newUser), true);
+    }
     public UserResponse createStaff(CreateStaffRequest req) {
         if (userRepository.existsByUsername(req.getUsername())) {
             throw new IllegalArgumentException("帳號已存在：" + req.getUsername());

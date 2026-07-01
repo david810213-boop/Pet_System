@@ -30,8 +30,22 @@ public class JwtUtils {
      * @return 加密後的 JWT 字串
      */
     public String generateToken(String username, String role) {
+        return generateToken(username, role, "WEB");
+    }
+
+    /**
+     * 生成 Token，並標記來源 (給 AuthMvcController / LineAuthController 登入成功時呼叫)
+     *
+     * @param username 使用者帳號 (Subject)
+     * @param role     使用者角色 (例如: ADMIN, STAFF, CUSTOMER)
+     * @param source   登入來源："WEB"（店家後台帳密登入）或 "LINE"（顧客 LIFF 登入），
+     *                 之後可用來區分請求來源，做差異化邏輯
+     * @return 加密後的 JWT 字串
+     */
+    public String generateToken(String username, String role, String source) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role); // 把角色權限塞進 Payload
+        claims.put("source", source);
 
         return Jwts.builder()
                 .setClaims(claims)

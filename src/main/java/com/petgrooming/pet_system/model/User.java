@@ -39,6 +39,9 @@ public class User {
     @Column(length = 20)
     private String phone;               // 電話號碼（選填）
 
+    @Column(name = "line_user_id", unique = true, length = 64)
+    private String lineUserId;          // LINE 登入對應的 userId（顧客專用，選填）
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

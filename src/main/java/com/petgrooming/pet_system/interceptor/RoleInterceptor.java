@@ -47,10 +47,15 @@ public class RoleInterceptor implements HandlerInterceptor {
         // 2. 從 request 取出剛剛 LoginInterceptor 解析出來的資訊
         String username = (String) request.getAttribute("tokenUsername");
         String roleStr = (String) request.getAttribute("tokenRole");
+        boolean isApi = request.getRequestURI().startsWith("/api/");
 
         if (username == null || roleStr == null) {
             log.warn("RoleInterceptor：找不到 JWT 認證資訊，拒絕存取 {}", request.getRequestURI());
-            response.sendRedirect("/auth/login");
+            if (isApi) {
+                writeJsonError(response, HttpServletResponse.SC_UNAUTHORIZED, "UNAUTHORIZED", "請先登入");
+            } else {
+                response.sendRedirect("/auth/login");
+            }
             return false;
         }
 
@@ -64,12 +69,24 @@ public class RoleInterceptor implements HandlerInterceptor {
                     username, userRole,
                     Arrays.toString(required), request.getRequestURI());
 
-            // 導回首頁並帶錯誤訊息
-            response.sendRedirect("/dashboard?error=forbidden");
+            if (isApi) {
+                // API 路徑：回 403 JSON，不能用 redirect，前端 fetch 無法處理 HTML 重導頁面
+                writeJsonError(response, HttpServletResponse.SC_FORBIDDEN, "FORBIDDEN", "權限不足，無法存取此功能");
+            } else {
+                // 一般網頁路徑（店家後台）：導回首頁並帶錯誤訊息
+                response.sendRedirect("/dashboard?error=forbidden");
+            }
             return false;
         }
 
         log.debug("RoleInterceptor：使用者 {} 通過角色驗證，存取 {}", username, request.getRequestURI());
         return true;
+    }
+
+    private void writeJsonError(HttpServletResponse response, int status, String error, String message)
+            throws java.io.IOException {
+        response.setStatus(status);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"error\":\"" + error + "\",\"message\":\"" + message + "\"}");
     }
 }
