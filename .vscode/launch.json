@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "TestJwt",
+      "request": "launch",
+      "mainClass": "com.petgrooming.pet_system.TestJwt",
+      "projectName": "pet-system"
+    },
+    {
+      "type": "java",
+      "name": "PetSystemApplication",
+      "request": "launch",
+      "mainClass": "com.petgrooming.pet_system.PetSystemApplication",
+      "projectName": "pet-system"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-PetSystemApplication<pet-system>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.petgroomming.pet_system.PetSystemApplication",
+      "projectName": "pet-system",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=49672 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=pet-system"
+    }
+  ]
+}

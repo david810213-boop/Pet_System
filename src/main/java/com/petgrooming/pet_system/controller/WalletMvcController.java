@@ -1,0 +1,84 @@
+package com.petgrooming.pet_system.controller;
+
+import com.petgrooming.pet_system.annotation.RequireRole;
+import com.petgrooming.pet_system.dto.DepositRequest;
+import com.petgrooming.pet_system.enums.UserRole;
+import com.petgrooming.pet_system.model.User;
+import com.petgrooming.pet_system.service.UserService;
+import com.petgrooming.pet_system.service.WalletService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+@RequestMapping("/admin/wallets")
+@RequiredArgsConstructor
+public class WalletMvcController {
+
+    private final WalletService walletService;
+    private final UserService userService;
+
+    private User getLoginUser(HttpServletRequest request) {
+        String username = (String) request.getAttribute("tokenUsername");
+        if (username == null) return null;
+        try { return userService.getUserEntityByUsername(username); }
+        catch (Exception e) { return null; }
+    }
+
+    // ── GET /admin/wallets ─────────────────────────────────────────────────
+    // 顧客儲值管理首頁：列出所有 CUSTOMER，可搜尋
+    @RequireRole({UserRole.ADMIN, UserRole.STAFF})
+    @GetMapping
+    public String listCustomers(HttpServletRequest request, Model model,
+                                @RequestParam(required = false) String keyword) {
+        model.addAttribute("user", getLoginUser(request));
+
+        var customers = userService.getAllCustomers(); // 下面 UserService 補這個方法
+        if (keyword != null && !keyword.isBlank()) {
+            String kw = keyword.toLowerCase();
+            customers = customers.stream()
+                    .filter(u -> u.getName().toLowerCase().contains(kw)
+                            || u.getUsername().toLowerCase().contains(kw))
+                    .toList();
+        }
+        model.addAttribute("customers", customers);
+        model.addAttribute("keyword", keyword);
+        return "admin/wallets";
+    }
+
+    // ── GET /admin/wallets/{username} ──────────────────────────────────────
+    // 查看特定顧客的錢包詳細資料
+    @RequireRole({UserRole.ADMIN, UserRole.STAFF})
+    @GetMapping("/{username}")
+    public String walletDetail(@PathVariable String username,
+                               HttpServletRequest request, Model model) {
+        model.addAttribute("user", getLoginUser(request));
+        model.addAttribute("customer", userService.getUserEntityByUsername(username));
+        model.addAttribute("wallet", walletService.getWallet(username));
+        model.addAttribute("transactions", walletService.getTransactions(username));
+        model.addAttribute("depositRequest", new DepositRequest());
+        return "admin/wallet-detail";
+    }
+
+    // ── POST /admin/wallets/{username}/deposit ─────────────────────────────
+    // 幫顧客儲值
+    @RequireRole({UserRole.ADMIN, UserRole.STAFF})
+    @PostMapping("/{username}/deposit")
+    public String deposit(@PathVariable String username,
+                          @Valid @ModelAttribute DepositRequest req,
+                          RedirectAttributes ra) {
+        try {
+            var result = walletService.deposit(username, req);
+            ra.addFlashAttribute("successMsg",
+                    "儲值成功！目前餘額 $" + result.getBalance() +
+                    "，會員等級：" + result.getCardTierLabel());
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", "儲值失敗：" + e.getMessage());
+        }
+        return "redirect:/admin/wallets/" + username;
+    }
+}

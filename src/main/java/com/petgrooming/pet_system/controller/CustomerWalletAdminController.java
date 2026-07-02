@@ -1,0 +1,57 @@
+package com.petgrooming.pet_system.controller;
+
+import com.petgrooming.pet_system.annotation.RequireRole;
+import com.petgrooming.pet_system.dto.DepositRequest;
+import com.petgrooming.pet_system.dto.WalletResponse;
+import com.petgrooming.pet_system.dto.WalletTransactionResponse;
+import com.petgrooming.pet_system.enums.UserRole;
+import com.petgrooming.pet_system.service.WalletService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
+ * 店家端儲值管理 API（STAFF / ADMIN 操作）
+ * 幫指定顧客儲值、查詢任意顧客的錢包與紀錄
+ */
+@RestController
+@RequestMapping("/api/admin/wallet")
+@RequiredArgsConstructor
+public class CustomerWalletAdminController {
+
+    private final WalletService walletService;
+
+    // ── GET /api/admin/wallet/{username} ───────────────────────────────────
+    // 查詢指定顧客的錢包
+    @RequireRole({UserRole.ADMIN, UserRole.STAFF})
+    @GetMapping("/{username}")
+    public ResponseEntity<WalletResponse> getWallet(@PathVariable String username) {
+        return ResponseEntity.ok(walletService.getWallet(username));
+    }
+
+    // ── GET /api/admin/wallet/{username}/transactions ──────────────────────
+    // 查詢指定顧客的異動紀錄
+    @RequireRole({UserRole.ADMIN, UserRole.STAFF})
+    @GetMapping("/{username}/transactions")
+    public ResponseEntity<List<WalletTransactionResponse>> getTransactions(@PathVariable String username) {
+        return ResponseEntity.ok(walletService.getTransactions(username));
+    }
+
+    // ── POST /api/admin/wallet/{username}/deposit ──────────────────────────
+    // 幫指定顧客儲值（收到現金/匯款後由店家操作）
+    @RequireRole({UserRole.ADMIN, UserRole.STAFF})
+    @PostMapping("/{username}/deposit")
+    public ResponseEntity<?> deposit(
+            @PathVariable String username,
+            @Valid @RequestBody DepositRequest req) {
+        try {
+            WalletResponse res = walletService.deposit(username, req);
+            return ResponseEntity.ok(res);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+}
